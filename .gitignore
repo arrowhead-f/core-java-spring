@@ -40,3 +40,4 @@ wrapper
 /deb-installer/.project
 /deb-installer/.settings
 deviceregistry/bin
+/qos-monitor/bin
