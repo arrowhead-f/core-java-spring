@@ -40,6 +40,7 @@ public class OrchestratedExternalPingMonitor extends AbstractPingMonitor{
 	//-------------------------------------------------------------------------------------------------
 	private static final int ICMP_TTL = 255;
 	private static final int OVERHEAD_MULTIPLIER = 2;
+	private static final String EMPTY_OR_NULL_ERROR_MESSAGE = " is empty or null";
 
 	private OrchestrationResultDTO cachedPingMonitorProvider = null;
 
@@ -67,6 +68,10 @@ public class OrchestratedExternalPingMonitor extends AbstractPingMonitor{
 	@Override
 	public List<IcmpPingResponse> ping(final String address) {
 		logger.debug("ping statred...");
+
+		if (Utilities.isEmpty(address)) {
+			throw new InvalidParameterException("Address" + EMPTY_OR_NULL_ERROR_MESSAGE);
+		}
 
 		if (cachedPingMonitorProvider != null){
 
@@ -140,17 +145,25 @@ public class OrchestratedExternalPingMonitor extends AbstractPingMonitor{
 				validateAcknowledgedMeasurementRequest(acknowledgedMeasurementRequest);
 
 				final UUID startedExternalMeasurementProcessId = acknowledgedMeasurementRequest.getExternalMeasurementUuid();
-				logger.debug("IcmpPingRequestACK received, with process id: " + startedExternalMeasurementProcessId);
+				if (startedExternalMeasurementProcessId == null) {
+					throw new ArrowheadException("External Ping Monitor returned ack without processId.");
+				}
+
+				logger.info("IcmpPingRequestACK received, with process id: " + startedExternalMeasurementProcessId);
 
 				return startedExternalMeasurementProcessId;
 
-			} catch (final Exception ex) {
-				logger.debug(ex);
+			} catch (final ArrowheadException ex) {
+				logger.info(ex);
 
 				cachedPingMonitorProvider = null;
 
-				throw new ArrowheadException("External Ping Monitor is not available at: " + address );
+				throw ex;
+			} catch (final Exception ex) {
+				logger.info(ex);
 
+				cachedPingMonitorProvider = null;
+				throw new ArrowheadException("External Ping Monitor is not available at: " + address );
 			}
 
 	}
