@@ -15,11 +15,12 @@
 package eu.arrowhead.common.dto.shared;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import eu.arrowhead.common.database.entity.ChoreographerStepDetail;
 
 import java.io.Serializable;
 import java.util.List;
 
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ChoreographerStepResponseDTO implements Serializable {
 
 	//=================================================================================================
@@ -29,7 +30,7 @@ public class ChoreographerStepResponseDTO implements Serializable {
 
 	private long id;
     private String name;
-    private String serviceName;
+    private List<ChoreographerStepDetailResponseDTO> stepDetails;
     private String metadata;
     private String parameters;
     private int quantity;
@@ -44,12 +45,11 @@ public class ChoreographerStepResponseDTO implements Serializable {
 	public ChoreographerStepResponseDTO() {}
 
     //-------------------------------------------------------------------------------------------------
-    public ChoreographerStepResponseDTO(final long id, final String name, final String serviceName, final String metadata, final String parameters,
+    public ChoreographerStepResponseDTO(final long id, final String name, final List<ChoreographerStepDetailResponseDTO> stepDetails, final String parameters,
                                         final List<ChoreographerNextStepResponseDTO> nextSteps, final int quantity, final String createdAt, final String updatedAt) {
         this.id = id;
         this.name = name;
-        this.serviceName = serviceName;
-        this.metadata = metadata;
+        this.stepDetails = stepDetails;
         this.parameters = parameters;
         this.nextSteps = nextSteps;
         this.quantity = quantity;
@@ -60,7 +60,7 @@ public class ChoreographerStepResponseDTO implements Serializable {
     //-------------------------------------------------------------------------------------------------
 	public long getId() { return id; }
 	public String getName() { return name; }
-	public String getServiceName() { return serviceName; }
+    public List<ChoreographerStepDetailResponseDTO> getStepDetails() { return stepDetails; }
     public String getMetadata() { return metadata; }
     public String getParameters() { return parameters; }
     public List<ChoreographerNextStepResponseDTO> getNextSteps() { return nextSteps; }
@@ -71,7 +71,7 @@ public class ChoreographerStepResponseDTO implements Serializable {
     //-------------------------------------------------------------------------------------------------
 	public void setId(final long id) { this.id = id; }
     public void setName(final String name) { this.name = name; }
-    public void setServiceName(String serviceName) { this.serviceName = serviceName; }
+    public void setStepDetails(List<ChoreographerStepDetailResponseDTO> stepDetails) { this.stepDetails = stepDetails; }
     public void setMetadata(String metadata) { this.metadata = metadata; }
     public void setParameters(String parameters) { this.parameters = parameters; }
     public void setNextSteps(final List<ChoreographerNextStepResponseDTO> nextSteps) { this.nextSteps = nextSteps; }

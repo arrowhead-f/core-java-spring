@@ -71,7 +71,7 @@ public class ChoreographerAction {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<ChoreographerStep> firstStepEntries = new HashSet<>();
 
-    @OneToMany(mappedBy = "action", fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(mappedBy = "action", fetch = FetchType.EAGER, orphanRemoval = true)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<ChoreographerStep> stepEntries = new HashSet<>();
 

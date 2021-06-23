@@ -15,6 +15,7 @@
 package eu.arrowhead.common.dto.internal;
 
 
+import java.lang.reflect.Array;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,7 +26,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.Executor;
 
+import eu.arrowhead.common.database.entity.ChoreographerExecutor;
+import eu.arrowhead.common.database.entity.ChoreographerExecutorServiceDefinition;
+import eu.arrowhead.common.database.entity.ChoreographerExecutorServiceDefinitionConnection;
+import eu.arrowhead.common.database.entity.ChoreographerStepDetail;
+import eu.arrowhead.common.dto.shared.ChoreographerExecutorResponseDTO;
+import eu.arrowhead.common.dto.shared.ChoreographerExecutorServiceDefinitionResponseDTO;
+import eu.arrowhead.common.dto.shared.ChoreographerStepDetailResponseDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.util.Assert;
 
@@ -159,7 +168,7 @@ public class DTOConverter {
 		
 		return dto;
 	}
-	
+
 	//-------------------------------------------------------------------------------------------------
 	public static ServiceRegistryListResponseDTO convertServiceRegistryListToServiceRegistryListResponseDTO(final Page<ServiceRegistry> serviceRegistryEntries) {
 		Assert.notNull(serviceRegistryEntries, "List of serviceRegistryEntries is null");
@@ -243,6 +252,13 @@ public class DTOConverter {
 		
 		return new ServiceInterfaceResponseDTO(intf.getId(), intf.getInterfaceName(), Utilities.convertZonedDateTimeToUTCString(intf.getCreatedAt()), 
 											   Utilities.convertZonedDateTimeToUTCString(intf.getUpdatedAt()));
+	}
+
+	public static ChoreographerExecutorServiceDefinitionResponseDTO convertExecutorServiceDefinitionToExecturServiceDefinitionResponseDTO(final ChoreographerExecutorServiceDefinition serviceDefinition) {
+		Assert.notNull(serviceDefinition, "Service definition entry is null.");
+
+		return new ChoreographerExecutorServiceDefinitionResponseDTO(serviceDefinition.getId(), serviceDefinition.getServiceDefinitionName(), serviceDefinition.getVersion(),
+				Utilities.convertZonedDateTimeToUTCString(serviceDefinition.getCreatedAt()), Utilities.convertZonedDateTimeToUTCString(serviceDefinition.getUpdatedAt()));
 	}
 
 	//-------------------------------------------------------------------------------------------------
@@ -996,9 +1012,8 @@ public class DTOConverter {
 
         return new ChoreographerStepResponseDTO(step.getId(),
                                                 step.getName(),
-                                                step.getServiceName(),
-                                                step.getMetadata(),
-                                                step.getParameters(),
+                                                collectStepDetailsFromStep(step.getStepDetails()),
+                                                step.getStaticParameters(),
                                                 collectNextStepsFromStep(step.getNextSteps()),
                                                 step.getQuantity(),
                                                 Utilities.convertZonedDateTimeToUTCString(step.getCreatedAt()),
@@ -1016,7 +1031,6 @@ public class DTOConverter {
             final ChoreographerAction actionEntry) {
         Assert.notNull(actionEntry, "Action entry is null.");
 
-
         return new ChoreographerActionResponseDTO(actionEntry.getId(),
                                                   actionEntry.getName(),
                                                   collectNextActionNameFromAction(actionEntry.getNextAction()),
@@ -1026,19 +1040,53 @@ public class DTOConverter {
                                                   Utilities.convertZonedDateTimeToUTCString(actionEntry.getUpdatedAt()));
     }
 
+    public static ChoreographerStepDetailResponseDTO convertStepDetailToStepDetailResponseDTO(final ChoreographerStepDetail stepDetailEntry) {
+		Assert.notNull(stepDetailEntry, "StepDetail entry is null.");
+		ChoreographerStepDetailResponseDTO detailResponseDTO = new ChoreographerStepDetailResponseDTO();
+
+		detailResponseDTO.setId(stepDetailEntry.getId());
+
+		if (stepDetailEntry.getVersion() != null) {
+			detailResponseDTO.setVersion(stepDetailEntry.getVersion());
+		}
+
+		if (stepDetailEntry.getMaxVersion() != null && stepDetailEntry.getMinVersion() != null) {
+			detailResponseDTO.setMaxVersion(stepDetailEntry.getMaxVersion());
+			detailResponseDTO.setMinVersion(stepDetailEntry.getMinVersion());
+		}
+
+		detailResponseDTO.setDto(stepDetailEntry.getDto());
+		detailResponseDTO.setServiceDefinition(stepDetailEntry.getServiceDefinition());
+		detailResponseDTO.setType(stepDetailEntry.getType());
+		detailResponseDTO.setCreatedAt(Utilities.convertZonedDateTimeToUTCString(stepDetailEntry.getCreatedAt()));
+		detailResponseDTO.setUpdatedAt(Utilities.convertZonedDateTimeToUTCString(stepDetailEntry.getUpdatedAt()));
+
+		return detailResponseDTO;
+	}
+
     //-------------------------------------------------------------------------------------------------
-    public static ChoreographerPlanResponseDTO convertPlanToPlanResponseDTO(
-            final ChoreographerPlan planEntry) {
+    public static ChoreographerPlanResponseDTO convertPlanToPlanResponseDTO(final ChoreographerPlan planEntry) {
         Assert.notNull(planEntry, "Plan entry is null.");
 
         return new ChoreographerPlanResponseDTO(planEntry.getId(),
                                                 planEntry.getName(),
-
                                                 planEntry.getFirstAction().getName(),
                                                 collectActionsFromPlan(planEntry.getActions()),
                                                 Utilities.convertZonedDateTimeToUTCString(planEntry.getCreatedAt()),
                                                 Utilities.convertZonedDateTimeToUTCString(planEntry.getUpdatedAt()));
     }
+
+	public static ChoreographerExecutorResponseDTO convertExecutorToExecutorResponseDTO(ChoreographerExecutor executor) {
+		Assert.notNull(executor, "Executor is null.");
+		Assert.notNull(executor.getAddress(), "Related address is null.");
+		Assert.notNull(executor.getName(), "Related executor name is null.");
+		Assert.notNull(executor.getPort(), "Related executor port is null.");
+
+		return new ChoreographerExecutorResponseDTO(executor.getId(), executor.getName(), executor.getAddress(),
+				executor.getPort(), executor.getBaseUri(), collectServiceDefinitionsFromExecutor(executor.getServiceDefinitionConnections()),
+				Utilities.convertZonedDateTimeToUTCString(executor.getCreatedAt()),
+				Utilities.convertZonedDateTimeToUTCString(executor.getUpdatedAt()));
+	}
 
     //-------------------------------------------------------------------------------------------------
     public static SystemRegistryResponseDTO convertSystemRegistryToSystemRegistryResponseDTO(final SystemRegistry entry) {
@@ -1139,6 +1187,7 @@ public class DTOConverter {
     //-------------------------------------------------------------------------------------------------
     public static List<String> collectFirstStepNamesFromAction(final Set<ChoreographerStep> steps) {
         Assert.notNull(steps, "Steps list is null.");
+
         final List<String> result = new ArrayList<>(steps.size());
         for (final ChoreographerStep step : steps) {
             result.add(step.getName());
@@ -1159,7 +1208,7 @@ public class DTOConverter {
         return result;
     }
 
-    //-------------------------------------------------------------------------------------------------
+	//-------------------------------------------------------------------------------------------------
 	public static String collectNextActionNameFromAction(final ChoreographerAction nextAction) {
         if (nextAction != null) {
             return nextAction.getName();
@@ -1167,7 +1216,27 @@ public class DTOConverter {
 
         return null;
     }
-    
+
+	//-------------------------------------------------------------------------------------------------
+	public static List<ChoreographerStepDetailResponseDTO> collectStepDetailsFromStep(final Set<ChoreographerStepDetail> stepDetails) {
+		Assert.notNull(stepDetails, "StepDetail list is null.");
+		final List<ChoreographerStepDetailResponseDTO> result = new ArrayList<>(stepDetails.size());
+
+		for (final ChoreographerStepDetail stepDetail : stepDetails) {
+			result.add(convertStepDetailToStepDetailResponseDTO(stepDetail));
+		}
+
+		return result;
+	}
+
+	public static ChoreographerSuitableExecutorResponseDTO convertSuitableExecutorIdsToSuitableExecutorResponseDTO (List<Long> executorIds) {
+		ChoreographerSuitableExecutorResponseDTO dto = new ChoreographerSuitableExecutorResponseDTO();
+		for (long id : executorIds) {
+			dto.getSuitableExecutorIds().add(id);
+		}
+		return dto;
+	}
+
 	// -------------------------------------------------------------------------------------------------
 	public static IssuedCertificatesResponseDTO convertCaCertificateListToIssuedCertificatesResponseDTO(
 			final Page<CaCertificate> certificateEntryList) {
@@ -1195,6 +1264,8 @@ public class DTOConverter {
 
 		return trustedKeysResponseDTO;
 	}
+	
+	
 	
 	//=================================================================================================
 	// assistant methods
@@ -1224,6 +1295,15 @@ public class DTOConverter {
 		
 		result.sort((dto1, dto2) -> dto1.getInterfaceName().compareToIgnoreCase(dto2.getInterfaceName()));
 		
+		return result;
+	}
+
+	public static List<ChoreographerExecutorServiceDefinitionResponseDTO> collectServiceDefinitionsFromExecutor(final Set<ChoreographerExecutorServiceDefinitionConnection> serviceDefinitionConnections) {
+		final List<ChoreographerExecutorServiceDefinitionResponseDTO> result = new ArrayList<>(serviceDefinitionConnections.size());
+		for (final ChoreographerExecutorServiceDefinitionConnection connection : serviceDefinitionConnections) {
+			result.add(convertExecutorServiceDefinitionToExecturServiceDefinitionResponseDTO(connection.getServiceDefinitionEntry()));
+		}
+
 		return result;
 	}
 	
@@ -1358,5 +1438,26 @@ public class DTOConverter {
 			return IssuedCertificateStatus.EXPIRED;
 		}
 		return IssuedCertificateStatus.GOOD;
+	}
+	public static ChoreographerExecutorListResponseDTO convertExecutorListToExecutorListResponseDTO(Page<ChoreographerExecutor> executorEntries) {
+		Assert.notNull(executorEntries, "List of executors is null");
+
+		final List<ChoreographerExecutorResponseDTO> executorEntryDTOs = new ArrayList<>(executorEntries.getNumberOfElements());
+		for (final ChoreographerExecutor executorEntry: executorEntries) {
+			executorEntryDTOs.add(convertExecutorToExecutorResponseDTO(executorEntry));
+		}
+
+		return new ChoreographerExecutorListResponseDTO(executorEntryDTOs, executorEntries.getTotalElements());
+	}
+
+	public static ChoreographerExecutorSearchResponseDTO convertExecutorListToExecutorSearchResponseDTO(List<ChoreographerExecutor> executorEntries) {
+		Assert.notNull(executorEntries, "List of executors is null");
+
+		final List<ChoreographerExecutorResponseDTO> executorEntryDTOs = new ArrayList<>();
+		for (final ChoreographerExecutor executorEntry: executorEntries) {
+			executorEntryDTOs.add(convertExecutorToExecutorResponseDTO(executorEntry));
+		}
+
+		return new ChoreographerExecutorSearchResponseDTO(executorEntryDTOs);
 	}
 }

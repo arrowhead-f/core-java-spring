@@ -40,12 +40,14 @@ public class SRAccessControlFilter extends CoreSystemAccessControlFilter {
 	
 	private static final CoreSystem[] allowedCoreSystemsForQuery = { CoreSystem.ORCHESTRATOR, CoreSystem.GATEKEEPER, CoreSystem.CERTIFICATEAUTHORITY, CoreSystem.EVENTHANDLER,
 																	 CoreSystem.AUTHORIZATION, CoreSystem.QOSMONITOR, CoreSystem.ONBOARDINGCONTROLLER, CoreSystem.DEVICEREGISTRY,
-															         CoreSystem.SYSTEMREGISTRY, CoreSystem.PLANTDESCRIPTIONENGINE };
+															         CoreSystem.CHOREOGRAPHER, CoreSystem.SYSTEMREGISTRY, CoreSystem.PLANTDESCRIPTIONENGINE };
 	private static final CoreSystem[] allowedCoreSystemsForQueryBySystemId = { CoreSystem.ORCHESTRATOR };
 	private static final CoreSystem[] allowedCoreSystemsForQueryBySystemDTO = { CoreSystem.ORCHESTRATOR };
 	private static final CoreSystem[] allowedCoreSystemsForQueryAll = { CoreSystem.QOSMONITOR, CoreSystem.GATEKEEPER };
 	private static final CoreSystem[] allowedCoreSystemsForRegisterSystem = { CoreSystem.PLANTDESCRIPTIONENGINE};
 	private static final CoreSystem[] allowedCoreSystemsForPullSystems = { CoreSystem.PLANTDESCRIPTIONENGINE};
+	private static final CoreSystem[] allowedCoreSystemsForQueryServicesBySystemId = { CoreSystem.CHOREOGRAPHER };
+	private static final CoreSystem[] allowedCoreSystemsForQueryServicesByServiceDefList = { CoreSystem.CHOREOGRAPHER };
 	
 	private static final String ID_PATH_VARIABLE = "{" + CommonConstants.COMMON_FIELD_NAME_ID + "}"; 
 	
@@ -85,6 +87,12 @@ public class SRAccessControlFilter extends CoreSystemAccessControlFilter {
 		} else if (requestTarget.endsWith(CoreCommonConstants.OP_SERVICEREGISTRY_QUERY_BY_SYSTEM_DTO_URI)) {
 			// Only dedicated core systems can use this service
 			checkIfClientIsAnAllowedCoreSystem(clientCN, cloudCN, allowedCoreSystemsForQueryBySystemDTO, requestTarget);
+		} else if (requestTarget.contains(CoreCommonConstants.OP_SERVICE_REGISTRY_QUERY_SERVICES_BY_SYSTEM_ID_URI.replace(ID_PATH_VARIABLE, ""))) {
+			// Only dedicated core systems can use this service
+			checkIfClientIsAnAllowedCoreSystem(clientCN, cloudCN, allowedCoreSystemsForQueryServicesBySystemId, requestTarget);
+		} else if (requestTarget.endsWith(CoreCommonConstants.OP_SERVICE_REGISTRY_QUERY_SERVICES_BY_SERVICE_DEFINITION_LIST_URI)) {
+			// Only dedicated core systems can use this service
+			checkIfClientIsAnAllowedCoreSystem(clientCN, cloudCN, allowedCoreSystemsForQueryServicesByServiceDefList, requestTarget);
 		} else if (requestTarget.endsWith(CoreCommonConstants.OP_SERVICEREGISTRY_QUERY_ALL_SERVICE_URI)) {
 			// Only dedicated core systems can use this service
 			checkIfClientIsAnAllowedCoreSystem(clientCN, cloudCN, allowedCoreSystemsForQueryAll, requestTarget);

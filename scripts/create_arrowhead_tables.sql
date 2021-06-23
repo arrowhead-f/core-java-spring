@@ -399,9 +399,7 @@ CREATE TABLE IF NOT EXISTS `choreographer_step` (
   `name` varchar(255) NOT NULL,
   `action_first_step_id` bigint(20),
   `action_id` bigint(20) NOT NULL,
-  `service_name` varchar(255) NOT NULL,
-  `metadata` text,
-  `parameters` text,
+  `static_parameters` text,
   `quantity` int(20) NOT NULL DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -453,6 +451,54 @@ CREATE TABLE IF NOT EXISTS `choreographer_worklog` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE IF NOT EXISTS `choreographer_executor` (
+    `id` bigint(20) NOT NULL AUTO_INCREMENT,
+    `name` varchar(255) NOT NULL,
+    `address` varchar(255) NOT NULL,
+    `port` int(11) NOT NULL,
+    `base_uri` varchar(255) DEFAULT NULL,
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `choreographer_executor_service_definition` (
+    `id` bigint(20) NOT NULL AUTO_INCREMENT,
+    `service_definition_name` varchar(255) NOT NULL,
+    `version` int(11) NOT NULL,
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY  KEY (`id`),
+    UNIQUE KEY `unique_service_definition_name_version` (`service_definition_name`, `version`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `choreographer_executor_service_definition_connection` (
+    `id` bigint(20) NOT NULL AUTO_INCREMENT,
+    `service_definition_id` bigint(20) NOT NULL,
+    `executor_id` bigint(20) NOT NULL,
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_executor_sd` FOREIGN KEY (`service_definition_id`) REFERENCES `choreographer_executor_service_definition` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_executor_id` FOREIGN KEY (`executor_id`) REFERENCES `choreographer_executor` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `choreographer_step_detail` (
+    `id` bigint(20) NOT NULL AUTO_INCREMENT,
+    `service_definition` varchar(255) NOT NULL,
+    `version` int(11),
+    `type` varchar(255) NOT NULL,
+    `min_version` int(11),
+    `max_version` int(11),
+    `dto` text NOT NULL,
+    `step_id` bigint(20) NOT NULL,
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `step_detail_step_id` FOREIGN KEY (`step_id`) REFERENCES `choreographer_step` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `check_type` CHECK (UPPER(`type`)='MAIN' OR UPPER(`type`)='PRECONDITION')
+) ENGINE=InnoDB DEFAULT CHARSET =utf8;
+
 -- Configuration
 CREATE TABLE IF NOT EXISTS `configuration_data` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
@@ -474,7 +520,7 @@ CREATE TABLE IF NOT EXISTS `qos_intra_measurement` (
 	`measurement_type` varchar(255) NOT NULL,
 	`last_measurement_at` timestamp NOT NULL,
 	`created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	`updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT `fk_system` FOREIGN KEY (`system_id`) REFERENCES `system_` (`id`) ON DELETE CASCADE,
 	UNIQUE KEY `unique_system_id_measurement_type` (`system_id`, `measurement_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

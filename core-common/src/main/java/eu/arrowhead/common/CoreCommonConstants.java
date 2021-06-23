@@ -38,6 +38,7 @@ public class CoreCommonConstants {
 	public static final String SR_QUERY_BY_SYSTEM_ID_URI = "service.registry.query.by.system.id.uri";
 	public static final String SR_QUERY_BY_SYSTEM_DTO_URI = "service.registry.query.by.system.dto.uri";
 	public static final String SR_QUERY_ALL = "service.registry.query.all.uri";
+	public static final String SR_QUERY_BY_SERVICE_DEFINITION_LIST_URI = "service.registry.query.services.by.service.definition.list.uri";
 	public static final String REQUIRED_URI_LIST = "required.uri.list";
 	public static final String URI_SUFFIX = "-uri";
 	
@@ -63,7 +64,9 @@ public class CoreCommonConstants {
 	public static final String OP_SERVICEREGISTRY_QUERY_BY_SYSTEM_ID_URI = "/query/system/{" + COMMON_FIELD_NAME_ID + "}";
 	public static final String OP_SERVICEREGISTRY_QUERY_BY_SYSTEM_DTO_URI = "/query/system";
 	public static final String OP_SERVICEREGISTRY_QUERY_ALL_SERVICE_URI = "/query/all";
+	public static final String OP_SERVICE_REGISTRY_QUERY_SERVICES_BY_SYSTEM_ID_URI = "/query/provider/{" + COMMON_FIELD_NAME_ID + "}";
 	public static final String OP_SERVICEREGISTRY_MULTI_QUERY_URI = CommonConstants.OP_SERVICEREGISTRY_QUERY_URI + "/multi";	
+	public static final String OP_SERVICE_REGISTRY_QUERY_SERVICES_BY_SERVICE_DEFINITION_LIST_URI = "/query/definition";
 		
 	public static final String ORCHESTRATOR_STORE_MGMT_URI = "/mgmt/store";
 	public static final String ORCHESTRATOR_STORE_FLEXIBLE_MGMT_URI = "/mgmt/store/flexible";

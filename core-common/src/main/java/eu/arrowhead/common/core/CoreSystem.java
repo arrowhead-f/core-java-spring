@@ -84,7 +84,9 @@ public enum CoreSystem {
 												   CoreSystemService.GATEWAY_PROVIDER_SERVICE,
 												   CoreSystemService.GATEWAY_CONSUMER_SERVICE)),
 	
-	CHOREOGRAPHER(Defaults.DEFAULT_CHOREOGRAPHER_PORT, List.of(CoreSystemService.CHOREOGRAPHER_SERVICE)),
+	CHOREOGRAPHER(Defaults.DEFAULT_CHOREOGRAPHER_PORT, List.of(CoreSystemService.CHOREOGRAPHER_SERVICE,
+			                                                   CoreSystemService.CHOREOGRAPHER_REGISTER_EXECUTOR_SERVICE,
+			                                                   CoreSystemService.CHOREOGRAPHER_UNREGISTER_EXECUTOR_SERVICE)),
 
     CONFIGURATION(Defaults.DEFAULT_CONFIGURATION_PORT, List.of(CoreSystemService.CONFIGURATION_SERVICE,
                                                                CoreSystemService.CONFIGURATION_RAW_SERVICE)),
